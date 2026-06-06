@@ -38,11 +38,15 @@ export async function syncFromCloud() {
 }
 
 async function upsertToCloud(isoA3, subdivName, date, note) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
   await supabase.from('visits').upsert({
     iso_a3: isoA3,
     subdivision_name: subdivName,
     visited_date: date || null,
     note: note || null,
+    user_id: user.id,
     updated_at: new Date().toISOString(),
   }, { onConflict: 'iso_a3,subdivision_name' });
 }

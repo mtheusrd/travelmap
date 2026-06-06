@@ -14,27 +14,57 @@ function saveVisits(visits) {
 
 export function isSubdivisionVisited(isoA3, subdivName) {
   const visits = loadVisits();
-  return !!(visits.subdivisions[isoA3] && visits.subdivisions[isoA3].includes(subdivName));
+  return !!(visits.subdivisions[isoA3]?.[subdivName]);
 }
 
 export function toggleSubdivisionVisit(isoA3, subdivName) {
   const visits = loadVisits();
-  if (!visits.subdivisions[isoA3]) visits.subdivisions[isoA3] = [];
-  const idx = visits.subdivisions[isoA3].indexOf(subdivName);
-  if (idx === -1) {
-    visits.subdivisions[isoA3].push(subdivName);
+  if (!visits.subdivisions[isoA3]) visits.subdivisions[isoA3] = {};
+  
+  if (visits.subdivisions[isoA3][subdivName]) {
+    delete visits.subdivisions[isoA3][subdivName];
+    saveVisits(visits);
+    return false;
   } else {
-    visits.subdivisions[isoA3].splice(idx, 1);
+    visits.subdivisions[isoA3][subdivName] = { date: '', note: '' };
+    saveVisits(visits);
+    return true;
   }
+}
+
+export function saveSubdivisionDetails(isoA3, subdivName, date, note) {
+  const visits = loadVisits();
+  if (!visits.subdivisions[isoA3]) visits.subdivisions[isoA3] = {};
+  if (!visits.subdivisions[isoA3][subdivName]) {
+    visits.subdivisions[isoA3][subdivName] = {};
+  }
+  visits.subdivisions[isoA3][subdivName].date = date;
+  visits.subdivisions[isoA3][subdivName].note = note;
   saveVisits(visits);
-  return idx === -1;
+}
+
+export function getSubdivisionDetails(isoA3, subdivName) {
+  const visits = loadVisits();
+  return visits.subdivisions[isoA3]?.[subdivName] || null;
 }
 
 export function isCountryVisited(isoA3) {
   const visits = loadVisits();
-  return !!(visits.subdivisions[isoA3] && visits.subdivisions[isoA3].length > 0);
+  return !!(visits.subdivisions[isoA3] && Object.keys(visits.subdivisions[isoA3]).length > 0);
 }
 
 export function getVisitedSubdivisions(isoA3) {
-  return loadVisits().subdivisions[isoA3] || [];
+  const visits = loadVisits();
+  return Object.keys(visits.subdivisions[isoA3] || {});
+}
+
+export function getAllVisitedStats() {
+  const visits = loadVisits();
+  const countries = Object.keys(visits.subdivisions).filter(
+    iso => Object.keys(visits.subdivisions[iso]).length > 0
+  ).length;
+  const subdivisions = Object.values(visits.subdivisions).reduce(
+    (acc, subs) => acc + Object.keys(subs).length, 0
+  );
+  return { countries, subdivisions };
 }

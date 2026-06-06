@@ -1,3 +1,5 @@
+import { saveSubdivisionDetails, getSubdivisionDetails } from '../data/visits.js';
+
 let panelEl = null;
 let onToggleVisit = null;
 
@@ -10,10 +12,20 @@ export function initPanel(onToggle) {
 
   document.getElementById('app').addEventListener('click', (e) => {
     if (e.target.id === 'panel-close') hidePanel();
+
     if (e.target.id === 'panel-visit-btn') {
       const isoA3 = panelEl.dataset.isoA3;
       const subdivName = panelEl.dataset.subdivName;
       if (isoA3 && subdivName && onToggleVisit) onToggleVisit(isoA3, subdivName);
+    }
+
+    if (e.target.id === 'panel-save-btn') {
+      const isoA3 = panelEl.dataset.isoA3;
+      const subdivName = panelEl.dataset.subdivName;
+      const date = document.getElementById('panel-date')?.value || '';
+      const note = document.getElementById('panel-note')?.value || '';
+      saveSubdivisionDetails(isoA3, subdivName, date, note);
+      showSavedFeedback();
     }
   });
 }
@@ -23,8 +35,7 @@ export function showPanel(countryName, isoA3, subdivName, isVisited) {
   panelEl.dataset.subdivName = subdivName;
 
   const flag = getFlag(isoA3);
-  const visitedClass = isVisited ? 'visited' : '';
-  const visitedText = isVisited ? '✓ Visitado' : '+ Marcar como visitado';
+  const details = getSubdivisionDetails(isoA3, subdivName);
 
   panelEl.innerHTML = `
     <div class="panel-header">
@@ -36,7 +47,32 @@ export function showPanel(countryName, isoA3, subdivName, isVisited) {
       <div class="panel-divider"></div>
       <div class="panel-subdivision-label">REGIÃO</div>
       <div class="panel-subdivision-name">${subdivName}</div>
-      <button id="panel-visit-btn" class="${visitedClass}">${visitedText}</button>
+      <button id="panel-visit-btn" class="${isVisited ? 'visited' : ''}">
+        ${isVisited ? '✓ Visitado' : '+ Marcar como visitado'}
+      </button>
+      ${isVisited ? `
+        <div class="panel-details">
+          <div class="panel-field">
+            <label class="panel-label">DATA DA VISITA</label>
+            <input 
+              type="date" 
+              id="panel-date" 
+              class="panel-input" 
+              value="${details?.date || ''}"
+            />
+          </div>
+          <div class="panel-field">
+            <label class="panel-label">NOTA</label>
+            <textarea 
+              id="panel-note" 
+              class="panel-textarea" 
+              placeholder="Escreve algo sobre esta visita..."
+            >${details?.note || ''}</textarea>
+          </div>
+          <button id="panel-save-btn">Guardar</button>
+          <div id="panel-saved-msg"></div>
+        </div>
+      ` : ''}
     </div>
   `;
 
@@ -44,19 +80,22 @@ export function showPanel(countryName, isoA3, subdivName, isVisited) {
 }
 
 export function updateVisitButton(isVisited) {
-  const btn = document.getElementById('panel-visit-btn');
-  if (!btn) return;
-  if (isVisited) {
-    btn.textContent = '✓ Visitado';
-    btn.classList.add('visited');
-  } else {
-    btn.textContent = '+ Marcar como visitado';
-    btn.classList.remove('visited');
-  }
+  const isoA3 = panelEl.dataset.isoA3;
+  const subdivName = panelEl.dataset.subdivName;
+  const countryName = document.querySelector('.panel-country')?.textContent || '';
+  showPanel(countryName, isoA3, subdivName, isVisited);
 }
 
 export function hidePanel() {
   if (panelEl) panelEl.classList.remove('visible');
+}
+
+function showSavedFeedback() {
+  const msg = document.getElementById('panel-saved-msg');
+  if (!msg) return;
+  msg.textContent = '✓ Guardado';
+  msg.style.opacity = '1';
+  setTimeout(() => { msg.style.opacity = '0'; }, 2000);
 }
 
 function getFlag(isoA3) {

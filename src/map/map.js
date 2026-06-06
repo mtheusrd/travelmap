@@ -101,6 +101,7 @@ export function initMap() {
   initPanel((isoA3, subdivName) => {
     const isNowVisited = toggleSubdivisionVisit(isoA3, subdivName);
     updateVisitButton(isNowVisited);
+    window.dispatchEvent(new CustomEvent('visits-updated'));
 
     // Actualizar estilo da subdivisão
     if (activeSubdivisionLayer) {

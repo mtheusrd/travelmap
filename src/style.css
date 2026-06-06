@@ -344,3 +344,49 @@ body {
   color: rgba(201, 168, 76, 0.3);
   font-size: 10px;
 }
+
+#map-legend {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  background: rgba(10, 10, 10, 0.85);
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  border-radius: 10px;
+  padding: 14px 18px;
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+.legend-title {
+  color: rgba(201, 168, 76, 0.5);
+  font-size: 9px;
+  letter-spacing: 2px;
+  font-family: 'Georgia', serif;
+  margin-bottom: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.legend-item:last-child {
+  margin-bottom: 0;
+}
+
+.legend-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.legend-text {
+  color: #e8d5a3;
+  font-size: 11px;
+  font-family: 'Georgia', serif;
+  letter-spacing: 0.5px;
+}

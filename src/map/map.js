@@ -98,27 +98,25 @@ export function initMap() {
     renderer: L.canvas(),
   });
 
-  initPanel((isoA3, subdivName) => {
-    const isNowVisited = toggleSubdivisionVisit(isoA3, subdivName);
-    updateVisitButton(isNowVisited);
-    window.dispatchEvent(new CustomEvent('visits-updated'));
+ initPanel(async (isoA3, subdivName) => {
+  const isNowVisited = await toggleSubdivisionVisit(isoA3, subdivName);
+  updateVisitButton(isNowVisited);
+  window.dispatchEvent(new CustomEvent('visits-updated'));
 
-    // Actualizar estilo da subdivisão
-    if (activeSubdivisionLayer) {
-      activeSubdivisionLayer.eachLayer(l => {
-        const n = l.feature?.properties?.name || l.feature?.properties?.NAME_1;
-        if (n === subdivName) {
-          l.setStyle(getSubdivisionStyle(isNowVisited));
-        }
-      });
-    }
+  if (activeSubdivisionLayer) {
+    activeSubdivisionLayer.eachLayer(l => {
+      const n = l.feature?.properties?.name || l.feature?.properties?.NAME_1;
+      if (n === subdivName) {
+        l.setStyle(getSubdivisionStyle(isNowVisited));
+      }
+    });
+  }
 
-    // Actualizar cor do país
-    const countryLayer = countryLayers[isoA3];
-    if (countryLayer) {
-      countryLayer.setStyle(getCountryStyle(isCountryVisited(isoA3)));
-    }
-  });
+  const countryLayer = countryLayers[isoA3];
+  if (countryLayer) {
+    countryLayer.setStyle(getCountryStyle(isCountryVisited(isoA3)));
+  }
+});
 
   fetch('/data/countries.geojson')
     .then(res => res.json())

@@ -1,6 +1,10 @@
+import { supabase } from './supabase.js';
+
 const STORAGE_KEY = 'travelmap_visits';
 
-function loadVisits() {
+// ─── LocalStorage (cache local) ───────────────────────────────
+
+function loadLocal() {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { subdivisions: {} };
   } catch {
@@ -8,58 +12,97 @@ function loadVisits() {
   }
 }
 
-function saveVisits(visits) {
+function saveLocal(visits) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(visits));
 }
 
+// ─── Supabase (cloud) ─────────────────────────────────────────
+
+export async function syncFromCloud() {
+  const { data, error } = await supabase.from('visits').select('*');
+  if (error || !data) return;
+
+  const visits = { subdivisions: {} };
+  data.forEach(row => {
+    if (!visits.subdivisions[row.iso_a3]) {
+      visits.subdivisions[row.iso_a3] = {};
+    }
+    visits.subdivisions[row.iso_a3][row.subdivision_name] = {
+      date: row.visited_date || '',
+      note: row.note || '',
+    };
+  });
+
+  saveLocal(visits);
+  window.dispatchEvent(new CustomEvent('visits-updated'));
+}
+
+async function upsertToCloud(isoA3, subdivName, date, note) {
+  await supabase.from('visits').upsert({
+    iso_a3: isoA3,
+    subdivision_name: subdivName,
+    visited_date: date || null,
+    note: note || null,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'iso_a3,subdivision_name' });
+}
+
+async function deleteFromCloud(isoA3, subdivName) {
+  await supabase.from('visits')
+    .delete()
+    .eq('iso_a3', isoA3)
+    .eq('subdivision_name', subdivName);
+}
+
+// ─── API pública ──────────────────────────────────────────────
+
 export function isSubdivisionVisited(isoA3, subdivName) {
-  const visits = loadVisits();
+  const visits = loadLocal();
   return !!(visits.subdivisions[isoA3]?.[subdivName]);
 }
 
-export function toggleSubdivisionVisit(isoA3, subdivName) {
-  const visits = loadVisits();
+export async function toggleSubdivisionVisit(isoA3, subdivName) {
+  const visits = loadLocal();
   if (!visits.subdivisions[isoA3]) visits.subdivisions[isoA3] = {};
-  
-  if (visits.subdivisions[isoA3][subdivName]) {
+
+  const isVisited = !!visits.subdivisions[isoA3][subdivName];
+
+  if (isVisited) {
     delete visits.subdivisions[isoA3][subdivName];
-    saveVisits(visits);
+    saveLocal(visits);
+    await deleteFromCloud(isoA3, subdivName);
     return false;
   } else {
     visits.subdivisions[isoA3][subdivName] = { date: '', note: '' };
-    saveVisits(visits);
+    saveLocal(visits);
+    await upsertToCloud(isoA3, subdivName, '', '');
     return true;
   }
 }
 
-export function saveSubdivisionDetails(isoA3, subdivName, date, note) {
-  const visits = loadVisits();
+export async function saveSubdivisionDetails(isoA3, subdivName, date, note) {
+  const visits = loadLocal();
   if (!visits.subdivisions[isoA3]) visits.subdivisions[isoA3] = {};
-  if (!visits.subdivisions[isoA3][subdivName]) {
-    visits.subdivisions[isoA3][subdivName] = {};
-  }
-  visits.subdivisions[isoA3][subdivName].date = date;
-  visits.subdivisions[isoA3][subdivName].note = note;
-  saveVisits(visits);
+  visits.subdivisions[isoA3][subdivName] = { date, note };
+  saveLocal(visits);
+  await upsertToCloud(isoA3, subdivName, date, note);
 }
 
 export function getSubdivisionDetails(isoA3, subdivName) {
-  const visits = loadVisits();
-  return visits.subdivisions[isoA3]?.[subdivName] || null;
+  return loadLocal().subdivisions[isoA3]?.[subdivName] || null;
 }
 
 export function isCountryVisited(isoA3) {
-  const visits = loadVisits();
+  const visits = loadLocal();
   return !!(visits.subdivisions[isoA3] && Object.keys(visits.subdivisions[isoA3]).length > 0);
 }
 
 export function getVisitedSubdivisions(isoA3) {
-  const visits = loadVisits();
-  return Object.keys(visits.subdivisions[isoA3] || {});
+  return Object.keys(loadLocal().subdivisions[isoA3] || {});
 }
 
 export function getAllVisitedStats() {
-  const visits = loadVisits();
+  const visits = loadLocal();
   const countries = Object.keys(visits.subdivisions).filter(
     iso => Object.keys(visits.subdivisions[iso]).length > 0
   ).length;

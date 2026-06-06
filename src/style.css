@@ -89,3 +89,120 @@ body {
 .country-label::before {
   display: none !important;
 }
+
+/* Painel lateral */
+#country-panel {
+  position: fixed;
+  top: 50%;
+  right: -340px;
+  transform: translateY(-50%);
+  width: 300px;
+  background: linear-gradient(160deg, #161616 0%, #0e0e0e 100%);
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(201, 168, 76, 0.1);
+}
+
+#country-panel.visible {
+  right: 24px;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid rgba(201, 168, 76, 0.15);
+  background: rgba(201, 168, 76, 0.04);
+}
+
+.panel-flag {
+  font-size: 36px;
+  line-height: 1;
+}
+
+#panel-close {
+  background: transparent;
+  border: 1px solid rgba(201, 168, 76, 0.2);
+  border-radius: 50%;
+  color: #c9a84c;
+  width: 28px;
+  height: 28px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+#panel-close:hover {
+  background: rgba(201, 168, 76, 0.1);
+  border-color: #c9a84c;
+}
+
+.panel-body {
+  padding: 20px;
+}
+
+.panel-country {
+  color: #e8d5a3;
+  font-family: 'Georgia', serif;
+  font-size: 20px;
+  font-weight: bold;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.panel-divider {
+  height: 1px;
+  background: linear-gradient(90deg, rgba(201,168,76,0.4), transparent);
+  margin-bottom: 16px;
+}
+
+.panel-subdivision-label {
+  color: rgba(201, 168, 76, 0.5);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-family: 'Georgia', serif;
+  margin-bottom: 6px;
+}
+
+.panel-subdivision-name {
+  color: #c9a84c;
+  font-family: 'Georgia', serif;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  margin-bottom: 24px;
+}
+
+#panel-visit-btn {
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  border: 1px solid rgba(201, 168, 76, 0.4);
+  border-radius: 6px;
+  color: #c9a84c;
+  font-family: 'Georgia', serif;
+  font-size: 13px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: all 0.25s ease;
+}
+
+#panel-visit-btn:hover {
+  background: rgba(201, 168, 76, 0.08);
+  border-color: #c9a84c;
+}
+
+#panel-visit-btn.visited {
+  background: rgba(201, 168, 76, 0.12);
+  color: #e8d5a3;
+  border-color: #e8d5a3;
+}
